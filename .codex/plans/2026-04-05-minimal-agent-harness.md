@@ -53,7 +53,7 @@ test-command: .venv/bin/pytest -q
 - [x] AC-6: Add a minimal experiment runner for baseline-vs-variant comparison.
   - TC: Two harness variants can be executed against the same task suite.
   - TC: Results are persisted to a log file for comparison.
-- [ ] AC-7: Add a constrained first-pass self-improvement loop.
+- [x] AC-7: Add a constrained first-pass self-improvement loop.
   - TC: The loop can compare a baseline and a modified variant automatically.
   - TC: Worse-performing variants are not promoted.
 

@@ -61,3 +61,24 @@ Fallbacks are tried by the harness in strict priority order. The current default
 ```bash
 .venv/bin/python -m minimal_agent_harness.benchmark --tasks-dir benchmarks/tasks --log-root benchmark_runs/latest
 ```
+
+## Compare baseline vs variant
+
+```bash
+.venv/bin/python -m minimal_agent_harness.experiments \
+  --tasks-dir benchmarks/tasks \
+  --baseline-config experiments/baseline-scripted.json \
+  --variant-config experiments/variant-openrouter.json \
+  --output benchmark_runs/experiments/latest-report.json
+```
+
+## Run the constrained self-improvement loop
+
+```bash
+.venv/bin/python -m minimal_agent_harness.self_improvement \
+  --tasks-dir benchmarks/tasks \
+  --current-best-config experiments/current-best.json \
+  --candidate-config experiments/candidates/openrouter-free-first.json \
+  --promoted-config-output experiments/current-best.generated.json \
+  --summary-output benchmark_runs/self_improvement/latest-summary.json
+```
