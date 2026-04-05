@@ -5,7 +5,7 @@ Small, testable task-agent harness built AC-by-AC.
 ## Current state
 
 - `scripted` backend: deterministic loop for local development and tests
-- `openai` backend: real model-backed action selection through the OpenAI Responses API
+- `openrouter` backend: real model-backed action selection through OpenRouter
 - core tools: `echo`, `list_files`, `read_file`, `write_file`, `run_shell`
 - verifier: blocks finish when the run does not satisfy the minimum completion rules
 - tiny benchmark suite under `benchmarks/tasks/`
@@ -23,22 +23,25 @@ python3 -m venv .venv
 .venv/bin/python -m minimal_agent_harness "demo instruction" --backend scripted
 ```
 
-## Run the OpenAI backend
+## Run the OpenRouter backend
 
 Set environment variables first:
 
 ```bash
-export OPENAI_API_KEY=your_key_here
-export OPENAI_MODEL=gpt-5.4-mini
+export OPENROUTER_API_KEY=your_key_here
+export OPENROUTER_MODEL=openai/gpt-oss-20b
+# Optional attribution headers from OpenRouter docs
+export OPENROUTER_SITE_URL=https://your-site.example
+export OPENROUTER_APP_NAME=minimal-agent-harness
 ```
 
 Then run:
 
 ```bash
-.venv/bin/python -m minimal_agent_harness "Use one tool and then finish" --backend openai
+.venv/bin/python -m minimal_agent_harness "Use one tool and then finish" --backend openrouter
 ```
 
-The OpenAI backend uses the Responses API and expects the model to return one JSON action at a time.
+The OpenRouter backend uses the OpenAI Python SDK against OpenRouter's `/api/v1` base URL and expects the model to return one JSON action at a time.
 
 ## Run the benchmark suite
 

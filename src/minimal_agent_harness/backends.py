@@ -9,7 +9,7 @@ from minimal_agent_harness.types import Action, FinishAction, RunContext, ToolAc
 
 
 class LLMClient(Protocol):
-    def create_response(self, *, model: str, prompt: str) -> str:
+    def create_completion(self, *, model: str, prompt: str) -> str:
         ...
 
 
@@ -28,28 +28,44 @@ def _extract_json_object(raw_text: str) -> dict[str, Any]:
 
 
 @dataclass
-class OpenAIResponsesClient:
+class OpenRouterChatClient:
     api_key: str | None = None
+    base_url: str = "https://openrouter.ai/api/v1"
+    site_url: str | None = None
+    app_name: str | None = None
 
-    def create_response(self, *, model: str, prompt: str) -> str:
+    def create_completion(self, *, model: str, prompt: str) -> str:
         from openai import OpenAI
 
-        client = OpenAI(api_key=self.api_key or os.getenv("OPENAI_API_KEY"))
-        response = client.responses.create(model=model, input=prompt)
-        text = getattr(response, "output_text", None)
-        if not text:
-            raise ValueError("OpenAI response did not include output_text.")
-        return text
+        default_headers = {}
+        if self.site_url:
+            default_headers["HTTP-Referer"] = self.site_url
+        if self.app_name:
+            default_headers["X-OpenRouter-Title"] = self.app_name
+
+        client = OpenAI(
+            api_key=self.api_key or os.getenv("OPENROUTER_API_KEY"),
+            base_url=os.getenv("OPENROUTER_BASE_URL", self.base_url),
+            default_headers=default_headers or None,
+        )
+        completion = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        message = completion.choices[0].message.content
+        if not message:
+            raise ValueError("OpenRouter response did not include message content.")
+        return message
 
 
 @dataclass
-class OpenAIBackend:
+class OpenRouterBackend:
     model: str
     client: LLMClient
 
     def next_action(self, context: RunContext) -> Action:
         prompt = self._build_prompt(context)
-        raw_text = self.client.create_response(model=self.model, prompt=prompt)
+        raw_text = self.client.create_completion(model=self.model, prompt=prompt)
         payload = _extract_json_object(raw_text)
         kind = payload.get("kind")
 

@@ -12,13 +12,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--backend",
         default=os.getenv("MINIMAL_AGENT_BACKEND", "scripted"),
-        choices=["scripted", "openai"],
+        choices=["scripted", "openrouter"],
         help="Backend used to choose the next action",
     )
     parser.add_argument(
         "--model",
-        default=os.getenv("OPENAI_MODEL"),
-        help="Model name for the OpenAI backend",
+        default=os.getenv("OPENROUTER_MODEL"),
+        help="Model name for the OpenRouter backend",
     )
     parser.add_argument(
         "--log-file",

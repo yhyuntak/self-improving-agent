@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 from typing import Protocol
 
-from minimal_agent_harness.backends import OpenAIBackend, OpenAIResponsesClient
+from minimal_agent_harness.backends import OpenRouterBackend, OpenRouterChatClient
 from minimal_agent_harness.tools import Tool, build_core_tools
 from minimal_agent_harness.types import (
     Action,
@@ -66,10 +66,13 @@ def build_backend(
 ):
     if backend_name == "scripted":
         return ScriptedBackend()
-    if backend_name == "openai":
-        resolved_model = model or os.getenv("OPENAI_MODEL") or "gpt-5.4-mini"
-        resolved_client = client if client is not None else OpenAIResponsesClient()
-        return OpenAIBackend(model=resolved_model, client=resolved_client)
+    if backend_name == "openrouter":
+        resolved_model = model or os.getenv("OPENROUTER_MODEL") or "openai/gpt-oss-20b"
+        resolved_client = client if client is not None else OpenRouterChatClient(
+            site_url=os.getenv("OPENROUTER_SITE_URL"),
+            app_name=os.getenv("OPENROUTER_APP_NAME"),
+        )
+        return OpenRouterBackend(model=resolved_model, client=resolved_client)
     raise ValueError(f"Unknown backend: {backend_name}")
 
 

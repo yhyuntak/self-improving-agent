@@ -1,6 +1,6 @@
 import pytest
 
-from minimal_agent_harness.backends import OpenAIBackend, _extract_json_object
+from minimal_agent_harness.backends import OpenRouterBackend, _extract_json_object
 from minimal_agent_harness.engine import build_backend
 from minimal_agent_harness.types import FinishAction, RunContext, ToolAction
 
@@ -10,7 +10,7 @@ class FakeLLMClient:
         self.responses = list(responses)
         self.calls = []
 
-    def create_response(self, *, model: str, prompt: str) -> str:
+    def create_completion(self, *, model: str, prompt: str) -> str:
         self.calls.append({"model": model, "prompt": prompt})
         return self.responses.pop(0)
 
@@ -20,14 +20,14 @@ def test_extract_json_object_ignores_wrapping_text():
     assert payload == {"kind": "finish", "response": "done"}
 
 
-def test_openai_backend_returns_tool_then_finish():
+def test_openrouter_backend_returns_tool_then_finish():
     client = FakeLLMClient(
         [
             "{\"kind\":\"tool\",\"tool_name\":\"echo\",\"arguments\":{\"text\":\"hello\"}}",
             "{\"kind\":\"finish\",\"response\":\"Completed sample run after tool call. Last tool output: hello\"}",
         ]
     )
-    backend = OpenAIBackend(model="gpt-test", client=client)
+    backend = OpenRouterBackend(model="openai/gpt-oss-20b", client=client)
     context = RunContext(instruction="say hello")
 
     first = backend.next_action(context)
@@ -47,18 +47,18 @@ def test_openai_backend_returns_tool_then_finish():
     assert second == FinishAction(
         response="Completed sample run after tool call. Last tool output: hello"
     )
-    assert client.calls[0]["model"] == "gpt-test"
+    assert client.calls[0]["model"] == "openai/gpt-oss-20b"
 
 
-def test_build_backend_supports_openai_with_fake_client():
+def test_build_backend_supports_openrouter_with_fake_client():
     backend = build_backend(
-        backend_name="openai",
-        model="gpt-test",
+        backend_name="openrouter",
+        model="openai/gpt-oss-20b",
         client=FakeLLMClient(
             ["{\"kind\":\"finish\",\"response\":\"Completed sample run after tool call.\"}"]
         ),
     )
-    assert isinstance(backend, OpenAIBackend)
+    assert isinstance(backend, OpenRouterBackend)
 
 
 def test_build_backend_rejects_unknown_backend():
