@@ -69,6 +69,7 @@ class SampleRunVerifier:
 def build_backend(
     backend_name: str = "scripted",
     model: str | None = None,
+    fallback_models: list[str] | None = None,
     client: object | None = None,
 ):
     load_dotenv_if_present()
@@ -77,7 +78,11 @@ def build_backend(
         return ScriptedBackend()
     if backend_name == "openrouter":
         resolved_model = model or os.getenv("OPENROUTER_MODEL") or "qwen/qwen3.6-plus:free"
-        fallback_models = _parse_fallback_models(os.getenv("OPENROUTER_FALLBACK_MODELS"))
+        resolved_fallback_models = (
+            fallback_models
+            if fallback_models is not None
+            else _parse_fallback_models(os.getenv("OPENROUTER_FALLBACK_MODELS"))
+        )
         resolved_client = client if client is not None else OpenRouterChatClient(
             site_url=os.getenv("OPENROUTER_SITE_URL"),
             app_name=os.getenv("OPENROUTER_APP_NAME"),
@@ -85,7 +90,7 @@ def build_backend(
         return OpenRouterBackend(
             model=resolved_model,
             client=resolved_client,
-            fallback_models=fallback_models,
+            fallback_models=resolved_fallback_models,
         )
     raise ValueError(f"Unknown backend: {backend_name}")
 
@@ -168,11 +173,17 @@ def build_default_runner(
     workspace_root: str | Path | None = None,
     backend_name: str = "scripted",
     model: str | None = None,
+    fallback_models: list[str] | None = None,
     client: object | None = None,
 ) -> AgentRunner:
     workspace = Path.cwd() if workspace_root is None else Path(workspace_root)
     return AgentRunner(
-        backend=build_backend(backend_name=backend_name, model=model, client=client),
+        backend=build_backend(
+            backend_name=backend_name,
+            model=model,
+            fallback_models=fallback_models,
+            client=client,
+        ),
         tools=build_core_tools(workspace),
         verifier=SampleRunVerifier(),
     )

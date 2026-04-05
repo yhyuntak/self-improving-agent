@@ -50,7 +50,7 @@ test-command: .venv/bin/pytest -q
 - [x] AC-5a: Add a prioritized OpenRouter fallback model chain with free-first ordering.
   - TC: The OpenRouter backend sends a fallback model list in request priority order.
   - TC: The runtime configuration supports a primary model plus environment-configured fallback models.
-- [ ] AC-6: Add a minimal experiment runner for baseline-vs-variant comparison.
+- [x] AC-6: Add a minimal experiment runner for baseline-vs-variant comparison.
   - TC: Two harness variants can be executed against the same task suite.
   - TC: Results are persisted to a log file for comparison.
 - [ ] AC-7: Add a constrained first-pass self-improvement loop.

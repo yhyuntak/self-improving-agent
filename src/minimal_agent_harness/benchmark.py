@@ -67,6 +67,17 @@ def verify_run(response: str, log_payload: dict[str, Any], expectation: dict[str
 
 
 def run_benchmark(tasks_dir: str | Path, log_root: str | Path = "benchmark_runs") -> dict[str, Any]:
+    return run_benchmark_with_config(tasks_dir=tasks_dir, log_root=log_root)
+
+
+def run_benchmark_with_config(
+    tasks_dir: str | Path,
+    log_root: str | Path = "benchmark_runs",
+    backend_name: str = "scripted",
+    model: str | None = None,
+    fallback_models: list[str] | None = None,
+    client: object | None = None,
+) -> dict[str, Any]:
     tasks_path = Path(tasks_dir)
     log_root_path = Path(log_root)
     results: list[dict[str, Any]] = []
@@ -75,7 +86,13 @@ def run_benchmark(tasks_dir: str | Path, log_root: str | Path = "benchmark_runs"
         task = load_task(task_dir)
         workspace = prepare_workspace(task, log_root_path)
         log_file = log_root_path / task.name / "run.json"
-        runner = build_default_runner(workspace_root=workspace)
+        runner = build_default_runner(
+            workspace_root=workspace,
+            backend_name=backend_name,
+            model=model,
+            fallback_models=fallback_models,
+            client=client,
+        )
         response = runner.run(task.instruction, log_file=str(log_file))
         log_payload = json.loads(log_file.read_text())
         passed, failures = verify_run(response, log_payload, task.expectation)
@@ -90,6 +107,9 @@ def run_benchmark(tasks_dir: str | Path, log_root: str | Path = "benchmark_runs"
 
     passed_count = sum(1 for result in results if result["passed"])
     return {
+        "backend_name": backend_name,
+        "model": model,
+        "fallback_models": fallback_models or [],
         "total": len(results),
         "passed": passed_count,
         "avg_score": (passed_count / len(results)) if results else 0.0,
@@ -115,7 +135,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
-    summary = run_benchmark(tasks_dir=args.tasks_dir, log_root=args.log_root)
+    summary = run_benchmark_with_config(tasks_dir=args.tasks_dir, log_root=args.log_root)
     print(json.dumps(summary, indent=2))
     return 0
 

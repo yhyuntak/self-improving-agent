@@ -1,0 +1,10 @@
+{
+  "name": "variant-openrouter",
+  "backend_name": "openrouter",
+  "model": "qwen/qwen3.6-plus:free",
+  "fallback_models": [
+    "stepfun/step-3.5-flash:free",
+    "nvidia/nemotron-3-super-120b-a12b:free",
+    "google/gemma-4-31b-it"
+  ]
+}
