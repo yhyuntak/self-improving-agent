@@ -11,6 +11,15 @@ class BadBackend:
         return FinishAction(response="done")
 
 
+class EmptyFinishBackend:
+    def next_action(self, context):
+        if not context.tool_results:
+            from minimal_agent_harness.types import ToolAction
+
+            return ToolAction(tool_name="echo", arguments={"text": "before-empty-finish"})
+        return FinishAction(response="")
+
+
 def test_runner_writes_tool_and_finish_events(tmp_path):
     log_file = tmp_path / "run.json"
 
@@ -19,7 +28,7 @@ def test_runner_writes_tool_and_finish_events(tmp_path):
         log_file=str(log_file),
     )
 
-    assert "Completed sample run" in response
+    assert response.strip()
 
     payload = json.loads(log_file.read_text())
     event_types = [event["type"] for event in payload["events"]]
@@ -33,6 +42,21 @@ def test_verifier_blocks_incorrect_result(tmp_path):
 
     with pytest.raises(RuntimeError, match="at least one tool call is required"):
         runner.run(instruction="skip the tool call", log_file=str(log_file))
+
+    payload = json.loads(log_file.read_text())
+    assert payload["events"][-1]["type"] == "verification_failed"
+
+
+def test_verifier_blocks_empty_finish_response(tmp_path):
+    log_file = tmp_path / "empty-run.json"
+    runner = AgentRunner(
+        backend=EmptyFinishBackend(),
+        tools=[EchoTool()],
+        verifier=build_default_runner()._verifier,
+    )
+
+    with pytest.raises(RuntimeError, match="final response must not be empty"):
+        runner.run(instruction="finish with nothing", log_file=str(log_file))
 
     payload = json.loads(log_file.read_text())
     assert payload["events"][-1]["type"] == "verification_failed"

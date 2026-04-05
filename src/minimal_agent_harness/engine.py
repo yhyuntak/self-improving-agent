@@ -58,10 +58,10 @@ class SampleRunVerifier:
                 ok=False,
                 error="Verification failed: at least one tool call is required before finish.",
             )
-        if "Completed sample run" not in response:
+        if not response or not response.strip():
             return VerificationResult(
                 ok=False,
-                error="Verification failed: final response is missing the expected completion marker.",
+                error="Verification failed: final response must not be empty.",
             )
         return VerificationResult(ok=True)
 

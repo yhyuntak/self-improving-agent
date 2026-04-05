@@ -12,6 +12,7 @@ def test_benchmark_runner_scores_all_tasks(tmp_path):
     assert summary["passed"] == 3
     assert summary["avg_score"] == 1.0
     assert all(result["score"] == 1.0 for result in summary["results"])
+    assert all("missing tool call" not in " ".join(result["failures"]) for result in summary["results"])
 
 
 def test_benchmark_cli_runs_all_tasks(tmp_path):

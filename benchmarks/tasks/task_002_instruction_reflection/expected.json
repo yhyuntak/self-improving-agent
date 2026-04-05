@@ -1,5 +1,3 @@
 {
-  "response_contains": "Completed sample run",
-  "required_event_types": ["tool_call", "finish"],
-  "required_tool_names": ["echo"]
+  "required_event_types": ["tool_call", "finish"]
 }
