@@ -38,7 +38,7 @@ test-command: .venv/bin/pytest -q
 - [x] AC-2: Add a small-model-friendly core toolset beyond the sample tool.
   - TC: Each tool can be exercised independently through tests.
   - TC: Tool failures return concise, actionable errors.
-- [ ] AC-3: Add a verification step before the harness can finish.
+- [x] AC-3: Add a verification step before the harness can finish.
   - TC: The verifier blocks an intentionally incorrect result.
   - TC: The verifier allows a correct result.
 - [ ] AC-4: Add a tiny deterministic benchmark task suite.

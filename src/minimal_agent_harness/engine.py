@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
 
-from minimal_agent_harness.tools import EchoTool, Tool, build_core_tools
+from minimal_agent_harness.tools import Tool, build_core_tools
 
 
 @dataclass
@@ -29,8 +29,19 @@ class FinishAction:
 Action = ToolAction | FinishAction
 
 
+@dataclass
+class VerificationResult:
+    ok: bool
+    error: str | None = None
+
+
 class Backend(Protocol):
     def next_action(self, context: RunContext) -> Action:
+        ...
+
+
+class Verifier(Protocol):
+    def verify(self, context: RunContext, response: str) -> VerificationResult:
         ...
 
 
@@ -50,10 +61,34 @@ class ScriptedBackend:
         )
 
 
+class SampleRunVerifier:
+    """Minimal verifier that ensures the harness produced a real tool-assisted result."""
+
+    def verify(self, context: RunContext, response: str) -> VerificationResult:
+        if not any(event["type"] == "tool_call" for event in context.events):
+            return VerificationResult(
+                ok=False,
+                error="Verification failed: at least one tool call is required before finish.",
+            )
+        if "Completed sample run" not in response:
+            return VerificationResult(
+                ok=False,
+                error="Verification failed: final response is missing the expected completion marker.",
+            )
+        return VerificationResult(ok=True)
+
+
 class AgentRunner:
-    def __init__(self, backend: Backend, tools: list[Tool], max_steps: int = 5):
+    def __init__(
+        self,
+        backend: Backend,
+        tools: list[Tool],
+        verifier: Verifier | None = None,
+        max_steps: int = 5,
+    ):
         self._backend = backend
         self._tools = {tool.name: tool for tool in tools}
+        self._verifier = verifier
         self._max_steps = max_steps
 
     def run(self, instruction: str, log_file: str | None = None) -> str:
@@ -78,6 +113,20 @@ class AgentRunner:
                 context.events.append(tool_event)
                 context.tool_results.append(tool_event)
                 continue
+
+            if self._verifier is not None:
+                verification = self._verifier.verify(context, action.response)
+                if not verification.ok:
+                    context.events.append(
+                        {
+                            "step": step,
+                            "type": "verification_failed",
+                            "error": verification.error,
+                        }
+                    )
+                    if log_file is not None:
+                        self._write_log(log_file, context)
+                    raise RuntimeError(verification.error or "Verification failed")
 
             finish_event = {
                 "step": step,
@@ -104,4 +153,8 @@ class AgentRunner:
 
 
 def build_default_runner() -> AgentRunner:
-    return AgentRunner(backend=ScriptedBackend(), tools=build_core_tools(Path.cwd()))
+    return AgentRunner(
+        backend=ScriptedBackend(),
+        tools=build_core_tools(Path.cwd()),
+        verifier=SampleRunVerifier(),
+    )
