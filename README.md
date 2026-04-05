@@ -25,14 +25,20 @@ python3 -m venv .venv
 
 ## Run the OpenRouter backend
 
-Set environment variables first:
+Create a `.env` file first:
 
 ```bash
-export OPENROUTER_API_KEY=your_key_here
-export OPENROUTER_MODEL=openai/gpt-oss-20b
+cp .env.example .env
+```
+
+Example `.env` values:
+
+```bash
+OPENROUTER_API_KEY=your_key_here
+OPENROUTER_MODEL=openai/gpt-oss-20b
 # Optional attribution headers from OpenRouter docs
-export OPENROUTER_SITE_URL=https://your-site.example
-export OPENROUTER_APP_NAME=minimal-agent-harness
+OPENROUTER_SITE_URL=https://your-site.example
+OPENROUTER_APP_NAME=minimal-agent-harness
 ```
 
 Then run:
@@ -41,7 +47,7 @@ Then run:
 .venv/bin/python -m minimal_agent_harness "Use one tool and then finish" --backend openrouter
 ```
 
-The OpenRouter backend uses the OpenAI Python SDK against OpenRouter's `/api/v1` base URL and expects the model to return one JSON action at a time.
+The harness auto-loads `.env` if it exists. The OpenRouter backend uses the OpenAI Python SDK against OpenRouter's `/api/v1` base URL and expects the model to return one JSON action at a time.
 
 ## Run the benchmark suite
 

@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Protocol
 
 from minimal_agent_harness.backends import OpenRouterBackend, OpenRouterChatClient
+from minimal_agent_harness.config import load_dotenv_if_present
 from minimal_agent_harness.tools import Tool, build_core_tools
 from minimal_agent_harness.types import (
     Action,
@@ -64,6 +65,8 @@ def build_backend(
     model: str | None = None,
     client: object | None = None,
 ):
+    load_dotenv_if_present()
+
     if backend_name == "scripted":
         return ScriptedBackend()
     if backend_name == "openrouter":
