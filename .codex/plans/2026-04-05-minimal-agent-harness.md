@@ -44,10 +44,13 @@ test-command: .venv/bin/pytest -q
 - [x] AC-4: Add a tiny deterministic benchmark task suite.
   - TC: All benchmark tasks run from one command.
   - TC: The run reports pass/fail or score per task.
-- [ ] AC-5: Add a minimal experiment runner for baseline-vs-variant comparison.
+- [x] AC-5: Add a real LLM backend connection for the harness loop.
+  - TC: The backend can request an action from a configured model client and turn it into a harness action.
+  - TC: The project has a documented runtime path for using a real model via environment variables.
+- [ ] AC-6: Add a minimal experiment runner for baseline-vs-variant comparison.
   - TC: Two harness variants can be executed against the same task suite.
   - TC: Results are persisted to a log file for comparison.
-- [ ] AC-6: Add a constrained first-pass self-improvement loop.
+- [ ] AC-7: Add a constrained first-pass self-improvement loop.
   - TC: The loop can compare a baseline and a modified variant automatically.
   - TC: Worse-performing variants are not promoted.
 
@@ -57,8 +60,9 @@ test-command: .venv/bin/pytest -q
 2. [Sequential] AC-2 -> `src/`, `tests/`
 3. [Sequential] AC-3 -> `src/`, `tests/`
 4. [Sequential] AC-4 -> `benchmarks/`, `tests/`
-5. [Sequential] AC-5 -> `src/`, `tests/`
+5. [Sequential] AC-5 -> `src/`, `tests/`, `README.md`
 6. [Sequential] AC-6 -> `src/`, `tests/`
+7. [Sequential] AC-7 -> `src/`, `tests/`
 
 ## Test Plan
 

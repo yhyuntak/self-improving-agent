@@ -3,5 +3,6 @@ Name: minimal-agent-harness
 Version: 0.1.0
 Summary: Small, testable task-agent harness
 Requires-Python: >=3.11
+Requires-Dist: openai>=1.100.0
 Provides-Extra: dev
 Requires-Dist: pytest>=8.0; extra == "dev"

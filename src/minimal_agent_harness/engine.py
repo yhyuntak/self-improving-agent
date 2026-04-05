@@ -1,38 +1,19 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
+import os
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Protocol
 
+from minimal_agent_harness.backends import OpenAIBackend, OpenAIResponsesClient
 from minimal_agent_harness.tools import Tool, build_core_tools
-
-
-@dataclass
-class RunContext:
-    instruction: str
-    tool_results: list[dict[str, Any]] = field(default_factory=list)
-    events: list[dict[str, Any]] = field(default_factory=list)
-
-
-@dataclass
-class ToolAction:
-    tool_name: str
-    arguments: dict[str, Any]
-
-
-@dataclass
-class FinishAction:
-    response: str
-
-
-Action = ToolAction | FinishAction
-
-
-@dataclass
-class VerificationResult:
-    ok: bool
-    error: str | None = None
+from minimal_agent_harness.types import (
+    Action,
+    FinishAction,
+    RunContext,
+    ToolAction,
+    VerificationResult,
+)
 
 
 class Backend(Protocol):
@@ -76,6 +57,20 @@ class SampleRunVerifier:
                 error="Verification failed: final response is missing the expected completion marker.",
             )
         return VerificationResult(ok=True)
+
+
+def build_backend(
+    backend_name: str = "scripted",
+    model: str | None = None,
+    client: object | None = None,
+):
+    if backend_name == "scripted":
+        return ScriptedBackend()
+    if backend_name == "openai":
+        resolved_model = model or os.getenv("OPENAI_MODEL") or "gpt-5.4-mini"
+        resolved_client = client if client is not None else OpenAIResponsesClient()
+        return OpenAIBackend(model=resolved_model, client=resolved_client)
+    raise ValueError(f"Unknown backend: {backend_name}")
 
 
 class AgentRunner:
@@ -152,10 +147,15 @@ class AgentRunner:
         path.write_text(json.dumps(payload, indent=2))
 
 
-def build_default_runner(workspace_root: str | Path | None = None) -> AgentRunner:
+def build_default_runner(
+    workspace_root: str | Path | None = None,
+    backend_name: str = "scripted",
+    model: str | None = None,
+    client: object | None = None,
+) -> AgentRunner:
     workspace = Path.cwd() if workspace_root is None else Path(workspace_root)
     return AgentRunner(
-        backend=ScriptedBackend(),
+        backend=build_backend(backend_name=backend_name, model=model, client=client),
         tools=build_core_tools(workspace),
         verifier=SampleRunVerifier(),
     )

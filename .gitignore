@@ -4,5 +4,6 @@ __pycache__/
 dist/
 build/
 .venv/
+.env
 run_logs/
 benchmark_runs/

@@ -1,8 +1,9 @@
 import json
 import pytest
 
-from minimal_agent_harness.engine import AgentRunner, FinishAction, build_default_runner
+from minimal_agent_harness.engine import AgentRunner, build_default_runner
 from minimal_agent_harness.tools import EchoTool
+from minimal_agent_harness.types import FinishAction
 
 
 class BadBackend:

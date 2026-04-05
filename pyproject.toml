@@ -3,7 +3,7 @@ name = "minimal-agent-harness"
 version = "0.1.0"
 description = "Small, testable task-agent harness"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = ["openai>=1.100.0"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
