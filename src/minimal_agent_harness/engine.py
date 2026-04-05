@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
+
+from minimal_agent_harness.tools import EchoTool, Tool, build_core_tools
 
 
 @dataclass
@@ -30,21 +32,6 @@ Action = ToolAction | FinishAction
 class Backend(Protocol):
     def next_action(self, context: RunContext) -> Action:
         ...
-
-
-class Tool(Protocol):
-    name: str
-
-    def invoke(self, arguments: dict[str, Any]) -> dict[str, Any]:
-        ...
-
-
-class EchoTool:
-    name = "echo"
-
-    def invoke(self, arguments: dict[str, Any]) -> dict[str, Any]:
-        text = str(arguments.get("text", ""))
-        return {"echoed_text": text}
 
 
 class ScriptedBackend:
@@ -117,4 +104,4 @@ class AgentRunner:
 
 
 def build_default_runner() -> AgentRunner:
-    return AgentRunner(backend=ScriptedBackend(), tools=[EchoTool()])
+    return AgentRunner(backend=ScriptedBackend(), tools=build_core_tools(Path.cwd()))

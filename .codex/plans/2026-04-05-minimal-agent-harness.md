@@ -35,7 +35,7 @@ test-command: .venv/bin/pytest -q
 - [x] AC-1: Build a minimal runnable harness with a CLI entrypoint, a loop-capable runner, and a sample backend that performs at least one tool call before finishing.
   - TC: Running the sample CLI command completes successfully and prints a final response.
   - TC: The run writes a structured log that includes at least one tool-call event and one finish event.
-- [ ] AC-2: Add a small-model-friendly core toolset beyond the sample tool.
+- [x] AC-2: Add a small-model-friendly core toolset beyond the sample tool.
   - TC: Each tool can be exercised independently through tests.
   - TC: Tool failures return concise, actionable errors.
 - [ ] AC-3: Add a verification step before the harness can finish.
