@@ -17,6 +17,12 @@ from minimal_agent_harness.types import (
 )
 
 
+def _parse_fallback_models(raw_value: str | None) -> list[str]:
+    if not raw_value:
+        return []
+    return [item.strip() for item in raw_value.split(",") if item.strip()]
+
+
 class Backend(Protocol):
     def next_action(self, context: RunContext) -> Action:
         ...
@@ -70,12 +76,17 @@ def build_backend(
     if backend_name == "scripted":
         return ScriptedBackend()
     if backend_name == "openrouter":
-        resolved_model = model or os.getenv("OPENROUTER_MODEL") or "openai/gpt-oss-20b"
+        resolved_model = model or os.getenv("OPENROUTER_MODEL") or "qwen/qwen3.6-plus:free"
+        fallback_models = _parse_fallback_models(os.getenv("OPENROUTER_FALLBACK_MODELS"))
         resolved_client = client if client is not None else OpenRouterChatClient(
             site_url=os.getenv("OPENROUTER_SITE_URL"),
             app_name=os.getenv("OPENROUTER_APP_NAME"),
         )
-        return OpenRouterBackend(model=resolved_model, client=resolved_client)
+        return OpenRouterBackend(
+            model=resolved_model,
+            client=resolved_client,
+            fallback_models=fallback_models,
+        )
     raise ValueError(f"Unknown backend: {backend_name}")
 
 

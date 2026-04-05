@@ -47,6 +47,9 @@ test-command: .venv/bin/pytest -q
 - [x] AC-5: Add a real LLM backend connection for the harness loop.
   - TC: The backend can request an action from a configured model client and turn it into a harness action.
   - TC: The project has a documented runtime path for using a real model via environment variables.
+- [x] AC-5a: Add a prioritized OpenRouter fallback model chain with free-first ordering.
+  - TC: The OpenRouter backend sends a fallback model list in request priority order.
+  - TC: The runtime configuration supports a primary model plus environment-configured fallback models.
 - [ ] AC-6: Add a minimal experiment runner for baseline-vs-variant comparison.
   - TC: Two harness variants can be executed against the same task suite.
   - TC: Results are persisted to a log file for comparison.
@@ -61,8 +64,9 @@ test-command: .venv/bin/pytest -q
 3. [Sequential] AC-3 -> `src/`, `tests/`
 4. [Sequential] AC-4 -> `benchmarks/`, `tests/`
 5. [Sequential] AC-5 -> `src/`, `tests/`, `README.md`
-6. [Sequential] AC-6 -> `src/`, `tests/`
-7. [Sequential] AC-7 -> `src/`, `tests/`
+6. [Sequential] AC-5a -> `src/`, `tests/`, `README.md`
+7. [Sequential] AC-6 -> `src/`, `tests/`
+8. [Sequential] AC-7 -> `src/`, `tests/`
 
 ## Test Plan
 

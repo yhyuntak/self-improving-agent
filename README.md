@@ -35,7 +35,8 @@ Example `.env` values:
 
 ```bash
 OPENROUTER_API_KEY=your_key_here
-OPENROUTER_MODEL=openai/gpt-oss-20b
+OPENROUTER_MODEL=qwen/qwen3.6-plus:free
+OPENROUTER_FALLBACK_MODELS=stepfun/step-3.5-flash:free,nvidia/nemotron-3-super-120b-a12b:free,google/gemma-4-31b-it
 # Optional attribution headers from OpenRouter docs
 OPENROUTER_SITE_URL=https://your-site.example
 OPENROUTER_APP_NAME=minimal-agent-harness
@@ -48,6 +49,12 @@ Then run:
 ```
 
 The harness auto-loads `.env` if it exists. The OpenRouter backend uses the OpenAI Python SDK against OpenRouter's `/api/v1` base URL and expects the model to return one JSON action at a time.
+
+Fallbacks are tried by the harness in strict priority order. The current default shape is:
+
+1. primary free model
+2. additional free fallbacks
+3. paid fallback only after the free chain is exhausted
 
 ## Run the benchmark suite
 

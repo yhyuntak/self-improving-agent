@@ -9,8 +9,21 @@ from minimal_agent_harness.types import Action, FinishAction, RunContext, ToolAc
 
 
 class LLMClient(Protocol):
-    def create_completion(self, *, model: str, prompt: str) -> str:
+    def create_completion(
+        self,
+        *,
+        model: str,
+        prompt: str,
+        fallback_models: list[str] | None = None,
+    ) -> str:
         ...
+
+
+def _candidate_models(model: str, fallback_models: list[str] | None) -> list[str]:
+    candidates = [model]
+    if fallback_models:
+        candidates.extend(fallback_models)
+    return candidates
 
 
 def _extract_json_object(raw_text: str) -> dict[str, Any]:
@@ -34,7 +47,13 @@ class OpenRouterChatClient:
     site_url: str | None = None
     app_name: str | None = None
 
-    def create_completion(self, *, model: str, prompt: str) -> str:
+    def create_completion(
+        self,
+        *,
+        model: str,
+        prompt: str,
+        fallback_models: list[str] | None = None,
+    ) -> str:
         from openai import OpenAI
 
         default_headers = {}
@@ -48,24 +67,36 @@ class OpenRouterChatClient:
             base_url=os.getenv("OPENROUTER_BASE_URL", self.base_url),
             default_headers=default_headers or None,
         )
-        completion = client.chat.completions.create(
-            model=model,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        message = completion.choices[0].message.content
-        if not message:
-            raise ValueError("OpenRouter response did not include message content.")
-        return message
+        failures: list[str] = []
+        for candidate_model in _candidate_models(model, fallback_models):
+            try:
+                completion = client.chat.completions.create(
+                    model=candidate_model,
+                    messages=[{"role": "user", "content": prompt}],
+                )
+                message = completion.choices[0].message.content
+                if not message:
+                    raise ValueError("OpenRouter response did not include message content.")
+                return message
+            except Exception as exc:
+                failures.append(f"{candidate_model}: {exc}")
+
+        raise RuntimeError("All OpenRouter model candidates failed. " + " | ".join(failures))
 
 
 @dataclass
 class OpenRouterBackend:
     model: str
     client: LLMClient
+    fallback_models: list[str] | None = None
 
     def next_action(self, context: RunContext) -> Action:
         prompt = self._build_prompt(context)
-        raw_text = self.client.create_completion(model=self.model, prompt=prompt)
+        raw_text = self.client.create_completion(
+            model=self.model,
+            prompt=prompt,
+            fallback_models=self.fallback_models,
+        )
         payload = _extract_json_object(raw_text)
         kind = payload.get("kind")
 

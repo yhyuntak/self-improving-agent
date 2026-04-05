@@ -10,9 +10,24 @@ class FakeLLMClient:
         self.responses = list(responses)
         self.calls = []
 
-    def create_completion(self, *, model: str, prompt: str) -> str:
-        self.calls.append({"model": model, "prompt": prompt})
+    def create_completion(self, *, model: str, prompt: str, fallback_models=None) -> str:
+        self.calls.append(
+            {"model": model, "prompt": prompt, "fallback_models": fallback_models}
+        )
         return self.responses.pop(0)
+
+
+class FallbackAwareClient:
+    def __init__(self):
+        self.calls = []
+
+    def create_completion(self, *, model: str, prompt: str, fallback_models=None) -> str:
+        self.calls.append(
+            {"model": model, "prompt": prompt, "fallback_models": fallback_models}
+        )
+        if model == "qwen/qwen3.6-plus:free" and fallback_models:
+            return "{\"kind\":\"finish\",\"response\":\"Completed sample run after tool call.\"}"
+        return "{\"kind\":\"finish\",\"response\":\"Completed sample run after tool call.\"}"
 
 
 def test_extract_json_object_ignores_wrapping_text():
@@ -27,7 +42,15 @@ def test_openrouter_backend_returns_tool_then_finish():
             "{\"kind\":\"finish\",\"response\":\"Completed sample run after tool call. Last tool output: hello\"}",
         ]
     )
-    backend = OpenRouterBackend(model="openai/gpt-oss-20b", client=client)
+    backend = OpenRouterBackend(
+        model="qwen/qwen3.6-plus:free",
+        client=client,
+        fallback_models=[
+            "stepfun/step-3.5-flash:free",
+            "nvidia/nemotron-3-super-120b-a12b:free",
+            "google/gemma-4-31b-it",
+        ],
+    )
     context = RunContext(instruction="say hello")
 
     first = backend.next_action(context)
@@ -47,18 +70,54 @@ def test_openrouter_backend_returns_tool_then_finish():
     assert second == FinishAction(
         response="Completed sample run after tool call. Last tool output: hello"
     )
-    assert client.calls[0]["model"] == "openai/gpt-oss-20b"
+    assert client.calls[0]["model"] == "qwen/qwen3.6-plus:free"
+    assert client.calls[0]["fallback_models"] == [
+        "stepfun/step-3.5-flash:free",
+        "nvidia/nemotron-3-super-120b-a12b:free",
+        "google/gemma-4-31b-it",
+    ]
 
 
-def test_build_backend_supports_openrouter_with_fake_client():
+def test_build_backend_supports_openrouter_with_fake_client(monkeypatch):
+    monkeypatch.setenv(
+        "OPENROUTER_FALLBACK_MODELS",
+        "stepfun/step-3.5-flash:free,nvidia/nemotron-3-super-120b-a12b:free,google/gemma-4-31b-it",
+    )
     backend = build_backend(
         backend_name="openrouter",
-        model="openai/gpt-oss-20b",
+        model="qwen/qwen3.6-plus:free",
         client=FakeLLMClient(
             ["{\"kind\":\"finish\",\"response\":\"Completed sample run after tool call.\"}"]
         ),
     )
     assert isinstance(backend, OpenRouterBackend)
+    assert backend.fallback_models == [
+        "stepfun/step-3.5-flash:free",
+        "nvidia/nemotron-3-super-120b-a12b:free",
+        "google/gemma-4-31b-it",
+    ]
+
+
+def test_openrouter_backend_passes_fallback_chain_to_client():
+    client = FallbackAwareClient()
+    backend = OpenRouterBackend(
+        model="qwen/qwen3.6-plus:free",
+        client=client,
+        fallback_models=[
+            "stepfun/step-3.5-flash:free",
+            "nvidia/nemotron-3-super-120b-a12b:free",
+            "google/gemma-4-31b-it",
+        ],
+    )
+
+    action = backend.next_action(RunContext(instruction="finish immediately"))
+
+    assert action == FinishAction(response="Completed sample run after tool call.")
+    assert client.calls[0]["fallback_models"] == [
+        "stepfun/step-3.5-flash:free",
+        "nvidia/nemotron-3-super-120b-a12b:free",
+        "google/gemma-4-31b-it",
+    ]
 
 
 def test_build_backend_rejects_unknown_backend():
