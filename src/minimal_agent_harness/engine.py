@@ -152,9 +152,10 @@ class AgentRunner:
         path.write_text(json.dumps(payload, indent=2))
 
 
-def build_default_runner() -> AgentRunner:
+def build_default_runner(workspace_root: str | Path | None = None) -> AgentRunner:
+    workspace = Path.cwd() if workspace_root is None else Path(workspace_root)
     return AgentRunner(
         backend=ScriptedBackend(),
-        tools=build_core_tools(Path.cwd()),
+        tools=build_core_tools(workspace),
         verifier=SampleRunVerifier(),
     )

@@ -41,7 +41,7 @@ test-command: .venv/bin/pytest -q
 - [x] AC-3: Add a verification step before the harness can finish.
   - TC: The verifier blocks an intentionally incorrect result.
   - TC: The verifier allows a correct result.
-- [ ] AC-4: Add a tiny deterministic benchmark task suite.
+- [x] AC-4: Add a tiny deterministic benchmark task suite.
   - TC: All benchmark tasks run from one command.
   - TC: The run reports pass/fail or score per task.
 - [ ] AC-5: Add a minimal experiment runner for baseline-vs-variant comparison.

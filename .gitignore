@@ -5,3 +5,4 @@ dist/
 build/
 .venv/
 run_logs/
+benchmark_runs/
