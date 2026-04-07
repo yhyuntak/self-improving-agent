@@ -15,9 +15,11 @@ class PipelineRunPaths:
     generator_meta_file: Path
     evaluator_dir: Path
     evaluator_diagnosis_file: Path
+    evaluator_meta_file: Path
     evaluator_notes_file: Path
     critic_dir: Path
     critic_review_file: Path
+    critic_meta_file: Path
     critic_notes_file: Path
 
 
@@ -38,9 +40,11 @@ def build_run_paths(base_dir: str | Path = "artifacts/runs", run_id: str | None 
         generator_meta_file=root / "generator" / "meta.json",
         evaluator_dir=root / "evaluator",
         evaluator_diagnosis_file=root / "evaluator" / "diagnosis.json",
+        evaluator_meta_file=root / "evaluator" / "meta.json",
         evaluator_notes_file=root / "evaluator" / "notes.md",
         critic_dir=root / "critic",
         critic_review_file=root / "critic" / "review.json",
+        critic_meta_file=root / "critic" / "meta.json",
         critic_notes_file=root / "critic" / "notes.md",
     )
 

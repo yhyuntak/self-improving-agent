@@ -93,10 +93,14 @@ artifacts/runs/{run_id}/
   generator/output.md
   generator/meta.json
   evaluator/diagnosis.json
+  evaluator/meta.json
   evaluator/notes.md
   critic/review.json
+  critic/meta.json
   critic/notes.md
 ```
+
+The stage instructions for `generator`, `evaluator`, and `critic` now live as local prompt assets under `src/minimal_agent_harness/prompts/`. The Python pipeline still owns stage order, parsing, and artifact writes.
 
 Run the full flow:
 
