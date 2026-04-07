@@ -82,3 +82,26 @@ Fallbacks are tried by the harness in strict priority order. The current default
   --promoted-config-output experiments/current-best.generated.json \
   --summary-output benchmark_runs/self_improvement/latest-summary.json
 ```
+
+## Run the document-driven prompt pipeline
+
+Each run writes artifacts under `artifacts/runs/{run_id}/`:
+
+```text
+artifacts/runs/{run_id}/
+  topic.md
+  generator/output.md
+  generator/meta.json
+  evaluator/diagnosis.json
+  evaluator/notes.md
+  critic/review.json
+  critic/notes.md
+```
+
+Run the full flow:
+
+```bash
+.venv/bin/python -m minimal_agent_harness.pipeline \
+  "Design a tiny landing page for a note-taking app." \
+  --run-id demo-run
+```

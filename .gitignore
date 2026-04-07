@@ -7,3 +7,4 @@ build/
 .env
 run_logs/
 benchmark_runs/
+artifacts/runs/
