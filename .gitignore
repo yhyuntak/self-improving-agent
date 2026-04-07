@@ -5,6 +5,5 @@ dist/
 build/
 .venv/
 .env
-run_logs/
-benchmark_runs/
-artifacts/runs/
+runs/*
+!runs/.gitkeep

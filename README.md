@@ -1,111 +1,110 @@
-# Minimal Agent Harness
+# Self Improving Agent
 
-Small, testable task-agent harness built AC-by-AC.
+This repo now starts from one simple agent module.
 
-## Current state
+The Main Codex session is the orchestrator.
+It runs the agent by CLI, then local evaluator and critic sub-agents can read the run files and judge what should change next.
 
-- `scripted` backend: deterministic loop for local development and tests
-- `openrouter` backend: real model-backed action selection through OpenRouter
-- core tools: `echo`, `list_files`, `read_file`, `write_file`, `run_shell`
-- verifier: blocks finish when the run does not satisfy the minimum completion rules
-- tiny benchmark suite under `benchmarks/tasks/`
+## Current Flow
+
+```text
+Main Codex
+  -> run simple_prompt_agent
+  -> inspect run artifacts
+  -> use evaluator sub-agent
+  -> use critic sub-agent
+  -> diagnose what to improve
+  -> improve the agent module
+```
+
+There is no loop in the agent itself yet.
+There is no tool use yet.
+Everything starts from one prompt and one answer.
+
+## Repo Shape
+
+```text
+.codex/
+  agents/
+    evaluator/
+    critic/
+  skills/
+    diagnose-agent/
+    improve-agent/
+agents/
+  simple_prompt_agent/
+    AGENTS.md
+    run.py
+    prompts/
+runs/
+tests/
+```
 
 ## Setup
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -e '.[dev]'
-```
-
-## Run the scripted backend
-
-```bash
-.venv/bin/python -m minimal_agent_harness "demo instruction" --backend scripted
-```
-
-## Run the OpenRouter backend
-
-Create a `.env` file first:
-
-```bash
 cp .env.example .env
 ```
 
-Example `.env` values:
+## Environment
+
+Example `.env`:
 
 ```bash
 OPENROUTER_API_KEY=your_key_here
 OPENROUTER_MODEL=qwen/qwen3.6-plus:free
 OPENROUTER_FALLBACK_MODELS=stepfun/step-3.5-flash:free,nvidia/nemotron-3-super-120b-a12b:free,google/gemma-4-31b-it
-# Optional attribution headers from OpenRouter docs
 OPENROUTER_SITE_URL=https://your-site.example
-OPENROUTER_APP_NAME=minimal-agent-harness
+OPENROUTER_APP_NAME=self-improving-agent
 ```
 
-Then run:
+## Run The Agent
 
 ```bash
-.venv/bin/python -m minimal_agent_harness "Use one tool and then finish" --backend openrouter
+.venv/bin/python -m agents.simple_prompt_agent.run "Draft a tiny concept note for a note-taking app." --run-id demo-run
 ```
 
-The harness auto-loads `.env` if it exists. The OpenRouter backend uses the OpenAI Python SDK against OpenRouter's `/api/v1` base URL and expects the model to return one JSON action at a time.
-
-Fallbacks are tried by the harness in strict priority order. The current default shape is:
-
-1. primary free model
-2. additional free fallbacks
-3. paid fallback only after the free chain is exhausted
-
-## Run the benchmark suite
+Or:
 
 ```bash
-.venv/bin/python -m minimal_agent_harness.benchmark --tasks-dir benchmarks/tasks --log-root benchmark_runs/latest
+.venv/bin/simple-prompt-agent "Draft a tiny concept note for a note-taking app." --run-id demo-run
 ```
 
-## Compare baseline vs variant
+## Run Artifacts
 
-```bash
-.venv/bin/python -m minimal_agent_harness.experiments \
-  --tasks-dir benchmarks/tasks \
-  --baseline-config experiments/baseline-scripted.json \
-  --variant-config experiments/variant-openrouter.json \
-  --output benchmark_runs/experiments/latest-report.json
-```
-
-## Run the constrained self-improvement loop
-
-```bash
-.venv/bin/python -m minimal_agent_harness.self_improvement \
-  --tasks-dir benchmarks/tasks \
-  --current-best-config experiments/current-best.json \
-  --candidate-config experiments/candidates/openrouter-free-first.json \
-  --promoted-config-output experiments/current-best.generated.json \
-  --summary-output benchmark_runs/self_improvement/latest-summary.json
-```
-
-## Run the document-driven prompt pipeline
-
-Each run writes artifacts under `artifacts/runs/{run_id}/`:
+Each run writes:
 
 ```text
-artifacts/runs/{run_id}/
-  topic.md
-  generator/output.md
-  generator/meta.json
-  evaluator/diagnosis.json
-  evaluator/meta.json
-  evaluator/notes.md
-  critic/review.json
-  critic/meta.json
-  critic/notes.md
+runs/{run_id}/
+  input.json
+  output.json
+  events.jsonl
+  meta.json
 ```
 
-The stage instructions for `generator`, `evaluator`, and `critic` now live as local prompt assets under `src/minimal_agent_harness/prompts/`. The Python pipeline still owns stage order, parsing, and artifact writes.
+### File Roles
 
-Run the full flow:
+- `input.json`
+  - the user prompt and run metadata at input time
+- `output.json`
+  - the final agent answer as JSON
+- `events.jsonl`
+  - ordered run events
+- `meta.json`
+  - model and runtime metadata
 
-```bash
-.venv/bin/python -m minimal_agent_harness.pipeline \
-  "Design a tiny landing page for a note-taking app." \
-  --run-id demo-run
-```
+## Local Sub-Agents
+
+- `.codex/agents/evaluator`
+  - reads run artifacts and writes a structured evaluation
+- `.codex/agents/critic`
+  - reads run artifacts plus evaluation and writes a structured critique
+
+## Local Skills
+
+- `.codex/skills/diagnose-agent`
+  - combine run output, evaluation, and critique into one diagnosis
+- `.codex/skills/improve-agent`
+  - apply approved changes to the agent module

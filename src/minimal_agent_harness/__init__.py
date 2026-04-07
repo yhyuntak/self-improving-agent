@@ -1,2 +1,0 @@
-"""Minimal agent harness package."""
-

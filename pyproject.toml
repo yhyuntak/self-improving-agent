@@ -1,25 +1,26 @@
 [project]
-name = "minimal-agent-harness"
-version = "0.1.0"
-description = "Small, testable task-agent harness"
+name = "self-improving-agent"
+version = "0.2.0"
+description = "Simple prompt agent repo with Codex orchestration"
 requires-python = ">=3.11"
 dependencies = ["openai>=1.100.0"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
 
+[project.scripts]
+simple-prompt-agent = "agents.simple_prompt_agent.run:main"
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-package-dir = {"" = "src"}
-
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
+include = ["agents*"]
 
 [tool.setuptools.package-data]
-minimal_agent_harness = ["prompts/*.md"]
+"agents.simple_prompt_agent" = ["prompts/*.txt"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
