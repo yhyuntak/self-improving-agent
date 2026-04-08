@@ -1,0 +1,58 @@
+Build a small single-user todo list project.
+
+Goal:
+Create a simple but complete todo app that feels production-shaped, not a toy. The app should help one user capture tasks, track progress, and keep the list easy to manage.
+
+Target user:
+- One person managing personal daily tasks
+- Fast add and fast review matter more than advanced team features
+
+Core user flows:
+- User can add a new task with a title and optional note
+- User can edit an existing task
+- User can mark a task as completed or active
+- User can delete a task
+- User can view tasks in three filters: all, active, completed
+- User can see task counts for active and completed items
+
+Functional requirements:
+- Each task has an id, title, optional note, status, created time, and updated time
+- Empty task titles are not allowed
+- Edited tasks keep the same id
+- Completed tasks can be moved back to active
+- Filters must update the visible list correctly
+- Data should persist across page reloads or app restarts
+
+Non-goals:
+- No multi-user support
+- No login or auth
+- No due dates, reminders, tags, or drag-and-drop
+- No cloud sync
+
+Quality bar:
+- Keep the structure small and easy to understand
+- Use plain naming and predictable file layout
+- Avoid unnecessary libraries and clever abstractions
+- Main flows should be easy to test
+- Error handling should be basic but real
+
+Technical constraints:
+- Choose a lightweight stack that is easy to run locally
+- Prefer a small implementation over a broad one
+- Keep state management simple
+- Keep setup steps short and reliable
+
+Expected output shape:
+- First describe the chosen stack and why it fits this project
+- Then describe the project structure
+- Then explain the main data model and state flow
+- Then list the implementation steps in order
+- Then name the key files to create
+- Then list important edge cases and test cases
+
+Acceptance criteria:
+- A developer can build the project from the response without guessing the core structure
+- All core user flows are covered
+- The data model is clear and sufficient
+- Persistence approach is named and fits the project size
+- The output is concrete, implementation-oriented, and not vague

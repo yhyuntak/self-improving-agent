@@ -1,6 +1,6 @@
 ---
 name: improve-agent
-description: Apply one approved change to the simple prompt agent module without widening scope.
+description: Apply one approved change to the self improving agent module without widening scope.
 argument-hint: "<approved diagnosis or target file>"
 ---
 
@@ -10,13 +10,13 @@ Use this when Main Codex already has an approved diagnosis.
 
 ## Goal
 
-Make one bounded improvement to `simple_prompt_agent`.
+Make one bounded improvement to `self_improving_agent`.
 
 ## Default Targets
 
-- `agents/simple_prompt_agent/AGENTS.md`
-- `agents/simple_prompt_agent/prompts/system.txt`
-- `agents/simple_prompt_agent/run.py`
+- `agents/self_improving_agent/AGENTS.md`
+- `agents/self_improving_agent/prompts/system.txt`
+- `agents/self_improving_agent/run.py`
 
 ## Rules
 

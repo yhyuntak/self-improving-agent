@@ -125,7 +125,7 @@ def load_system_prompt() -> tuple[str, str]:
 
 def default_model() -> str:
     load_dotenv_if_present()
-    return os.getenv("OPENROUTER_MODEL", "qwen/qwen3.6-plus:free")
+    return os.getenv("OPENROUTER_MODEL", "google/gemma-4-31b-it")
 
 
 def default_fallback_models() -> list[str]:
@@ -228,17 +228,32 @@ def run_once(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run the simple prompt agent once")
-    parser.add_argument("prompt", help="Prompt to send to the agent")
+    parser.add_argument("prompt", nargs="?", help="Prompt to send to the agent")
+    parser.add_argument("--prompt-file", default=None, help="Optional file that contains the full prompt")
     parser.add_argument("--run-id", default=None, help="Optional run identifier")
     parser.add_argument("--runs-dir", default="runs", help="Directory for run artifacts")
     parser.add_argument("--model", default=None, help="Optional model override")
     return parser
 
 
+def load_prompt_from_args(prompt: str | None, prompt_file: str | None) -> str:
+    if prompt and prompt_file:
+        raise ValueError("provide either prompt or --prompt-file, not both")
+    if prompt_file:
+        file_prompt = Path(prompt_file).read_text(encoding="utf-8").strip()
+        if not file_prompt:
+            raise ValueError("prompt file must not be empty")
+        return file_prompt
+    if prompt and prompt.strip():
+        return prompt
+    raise ValueError("prompt or --prompt-file is required")
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    prompt = load_prompt_from_args(args.prompt, args.prompt_file)
     run_paths = run_once(
-        args.prompt,
+        prompt,
         runs_dir=args.runs_dir,
         run_id=args.run_id,
         model=args.model,

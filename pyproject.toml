@@ -10,6 +10,7 @@ dev = ["pytest>=8.0"]
 
 [project.scripts]
 simple-prompt-agent = "agents.simple_prompt_agent.run:main"
+self-improving-agent = "agents.self_improving_agent.run:main"
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -21,6 +22,7 @@ include = ["agents*"]
 
 [tool.setuptools.package-data]
 "agents.simple_prompt_agent" = ["prompts/*.txt"]
+"agents.self_improving_agent" = ["prompts/*.txt"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

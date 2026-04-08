@@ -6,7 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from agents.simple_prompt_agent.run import build_run_paths, run_once
+import agents.simple_prompt_agent.run as run_module
+from agents.simple_prompt_agent.run import build_run_paths, default_model, load_prompt_from_args, run_once
 
 
 class FakeClient:
@@ -97,8 +98,56 @@ def test_cli_smoke_run_with_fake_response_env(tmp_path):
     assert run_paths.meta_file.exists()
 
 
+def test_cli_supports_prompt_file(tmp_path):
+    prompt_file = tmp_path / "prompt.txt"
+    prompt_file.write_text("Build a todo app.\n\nKeep the scope small.\n", encoding="utf-8")
+
+    env = os.environ.copy()
+    env["SIMPLE_PROMPT_AGENT_FAKE_RESPONSE_JSON"] = '{"final_answer":"Prompt file answer."}'
+
+    subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "agents.simple_prompt_agent.run",
+            "--prompt-file",
+            str(prompt_file),
+            "--run-id",
+            "file-smoke",
+            "--runs-dir",
+            str(tmp_path),
+        ],
+        check=True,
+        env=env,
+        capture_output=True,
+        text=True,
+    )
+
+    run_paths = build_run_paths(tmp_path, "file-smoke")
+    input_payload = json.loads(run_paths.input_file.read_text())
+    assert input_payload["prompt"] == "Build a todo app.\n\nKeep the scope small."
+
+
+def test_load_prompt_from_args_rejects_invalid_combinations(tmp_path):
+    prompt_file = tmp_path / "prompt.txt"
+    prompt_file.write_text("Build a todo app.", encoding="utf-8")
+
+    with pytest.raises(ValueError):
+        load_prompt_from_args("inline prompt", str(prompt_file))
+
+    with pytest.raises(ValueError):
+        load_prompt_from_args(None, None)
+
+
+def test_default_model_prefers_gemma_when_env_is_unset(monkeypatch):
+    monkeypatch.setattr(run_module, "load_dotenv_if_present", lambda: None)
+    monkeypatch.delenv("OPENROUTER_MODEL", raising=False)
+    assert default_model() == "google/gemma-4-31b-it"
+
+
 def test_repo_contains_local_subagent_and_skill_scaffolds():
     assert Path(".codex/agents/evaluator/AGENTS.md").exists()
     assert Path(".codex/agents/critic/AGENTS.md").exists()
+    assert Path(".codex/skills/agent-cycle/SKILL.md").exists()
     assert Path(".codex/skills/diagnose-agent/SKILL.md").exists()
     assert Path(".codex/skills/improve-agent/SKILL.md").exists()

@@ -9,10 +9,14 @@ Primary inputs:
 - `runs/{run_id}/output.json`
 - `runs/{run_id}/events.jsonl`
 - `runs/{run_id}/meta.json`
+- `artifacts/{run_id}/project/`
 
 Your job:
 
-- explain whether the answer matches the prompt
+- explain whether the generated project matches the prompt
+- check whether files were created in the expected output directory
+- check whether the project looks runnable
+- check whether test and E2E direction are named clearly enough
 - point out strengths
 - point out weaknesses
 - list concrete next changes

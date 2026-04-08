@@ -10,10 +10,12 @@ Primary inputs:
 - `runs/{run_id}/events.jsonl`
 - `runs/{run_id}/meta.json`
 - `runs/{run_id}/evaluation.json`
+- `artifacts/{run_id}/project/`
 
 Your job:
 
 - check whether the evaluator is overreaching
+- check whether the evaluation is grounded in generated project artifacts
 - narrow weak suggestions
 - reject low-confidence claims
 - keep the next change list small
